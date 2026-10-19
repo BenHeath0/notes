@@ -93,7 +93,7 @@ url: https://notes.granola.ai/d/6ebe35bf-f1e5-40f3-803a-22c2baa98e79
 - If a new meeting's filename is already taken in that date folder by a different meeting (e.g. two `Standup - SFE` on the same day), the first 8 characters of its ID are appended.
 - A file is only rewritten when its content changed.
 
-**Local edits are overwritten** while a meeting is still inside the 30-day window, because Granola is treated as the source of truth. Once a meeting ages out, its file is never touched again.
+**Local edits are overwritten** while a meeting is still inside the 30-day window, because Granola is treated as the source of truth. The exception is the `Transcript` section: once a file has a non-empty transcript, it is never overwritten, even if Granola later returns an empty or different one. Once a meeting ages out, its file is never touched again.
 
 ## Scheduling
 
@@ -158,7 +158,7 @@ Any error during a sync shows a macOS notification titled **Granola sync failed*
 
 ## Limitations
 
-- **Free plan**: only the last 30 days are reachable, and transcripts (`get_meeting_transcript`) are not available, so the `Transcript` sections stay empty. Anything older than 30 days that was never synced can't be recovered this way. Granola's CSV export (Settings → Profile → Generate CSV) covers full history as a one-off backup.
+- **Free plan**: only the last 30 days are reachable, and transcripts (`get_meeting_transcript`) are not available, so `Transcript` sections stay empty for new meetings. Transcripts saved before a downgrade are kept. Anything older than 30 days that was never synced can't be recovered this way. Granola's CSV export (Settings → Profile → Generate CSV) covers full history as a one-off backup.
 - **Rate limit**: Granola's MCP averages around 100 requests per minute. A sync uses 1 + ⌈meetings / 10⌉ + meetings tool calls (about 50 for a month of meetings), made one at a time, so this is not a concern.
 - **Undocumented format**: the XML-like tool output isn't a documented contract. If Granola changes it, parsing may break or return no meetings. Check the `synced N meetings` count in the log.
 - **Refresh token lifetime** is not documented by Granola. Expect to rerun `login` occasionally.

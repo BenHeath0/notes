@@ -172,8 +172,14 @@ def sync():
 
     counts = {"new": 0, "updated": 0, "unchanged": 0}
     for m in meetings:
-        when, content = render(m, transcripts[m.get("id")])
+        transcript = transcripts[m.get("id")]
         path = existing.get(m.get("id"))
+        if path:
+            # a saved transcript is never overwritten
+            saved = path.read_text().split("\n## Transcript\n", 1)
+            if len(saved) == 2 and saved[1].strip():
+                transcript = saved[1].strip()
+        when, content = render(m, transcript)
         if path is None:
             name = re.sub(r'[\\/:*?"<>|#^\[\]]', "-", m.get("title")).strip()
             day_dir = OUT_DIR / f"{when:%Y-%m-%d}"
