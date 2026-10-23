@@ -99,7 +99,9 @@ async def call(session, tool, args):
     start = text.find("<meetings_data")
     if start == -1:
         return []
-    return ET.fromstring(text[start:]).findall("meeting")
+    # list_meetings appends a <pagination /> element after the closing tag
+    end = text.find("</meetings_data>") + len("</meetings_data>")
+    return ET.fromstring(text[start:end]).findall("meeting")
 
 
 async def transcript(session, meeting_id):
