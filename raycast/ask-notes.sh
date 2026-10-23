@@ -9,6 +9,8 @@
 
 cd "$HOME/Developer/notes" || exit 1
 
+printf 'Q: %s\n\n' "$1"
+
 # hybrid keyword + vector search; reranking adds ~7s for little gain on this corpus
 notes=$("$HOME/.local/bin/qmd" query --no-rerank "$1" --json -n 5 2>/dev/null |
   /opt/homebrew/bin/jq -r '.[].file | sub("^qmd://notes/"; "")' |
