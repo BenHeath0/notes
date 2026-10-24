@@ -164,7 +164,16 @@ def render(m, transcript):
 
 
 def sync():
-    meetings, transcripts = asyncio.run(fetch_meetings(access_token()))
+    # the granola server sometimes stops responding mid-session, so retry before giving up
+    for attempt in range(3):
+        try:
+            meetings, transcripts = asyncio.run(fetch_meetings(access_token()))
+            break
+        except Exception as e:
+            if attempt == 2:
+                raise
+            print(f"fetch failed ({e!r}), retrying in 60s", flush=True)
+            time.sleep(60)
     OUT_DIR.mkdir(exist_ok=True)
     existing = {}
     for path in OUT_DIR.rglob("*.md"):
@@ -207,5 +216,11 @@ if __name__ == "__main__":
         try:
             sync()
         except Exception as e:
-            subprocess.run(["osascript", "-e", f"display notification {json.dumps(str(e)[:200])} with title \"Granola sync failed\""])
+            # the mcp client wraps errors in task groups, which hides the real one
+            err = e
+            while isinstance(err, ExceptionGroup):
+                err = err.exceptions[0]
+            msg = f"{type(err).__name__}: {err}"
+            # a dialog, unlike a notification, still shows under do not disturb
+            subprocess.run(["osascript", "-e", f"display dialog {json.dumps(msg[:200])} with title \"Granola sync failed\" buttons {{\"OK\"}} with icon caution"])
             raise
