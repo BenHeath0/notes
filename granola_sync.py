@@ -114,15 +114,19 @@ async def transcript(session, meeting_id):
     return (json.loads(text[start:]).get("transcript") or "").strip()
 
 
-async def fetch_meetings(token):
+async def fetch_meetings(token, updated_after):
     http = httpx2.AsyncClient(headers={"Authorization": f"Bearer {token}"}, timeout=120)
     async with http, streamable_http_client(MCP_URL, http_client=http) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
-            listing = await call(session, "list_meetings", {
+            args = {
                 "time_range": "last_30_days",
                 "involvement": {"captured_by_me": True, "listed_as_participant": True},
-            })
+            }
+            # only new or changed meetings, to stay under granola's per-tool rate limit
+            if updated_after:
+                args["updated_after"] = updated_after
+            listing = await call(session, "list_meetings", args)
             ids = [m.get("id") for m in listing]
             meetings = []
             for i in range(0, len(ids), 10):
@@ -164,10 +168,13 @@ def render(m, transcript):
 
 
 def sync():
+    last_sync = OUT_DIR / ".last_sync"
+    updated_after = last_sync.read_text().strip() if last_sync.exists() else None
+    started = datetime.now().astimezone().isoformat(timespec="seconds")
     # the granola server sometimes stops responding mid-session, so retry before giving up
     for attempt in range(3):
         try:
-            meetings, transcripts = asyncio.run(fetch_meetings(access_token()))
+            meetings, transcripts = asyncio.run(fetch_meetings(access_token(), updated_after))
             break
         except Exception as e:
             if attempt == 2:
@@ -205,6 +212,7 @@ def sync():
             counts["updated"] += 1
         path.parent.mkdir(exist_ok=True)
         path.write_text(content)
+    last_sync.write_text(started)
 
     print(f"{datetime.now():%Y-%m-%d %H:%M} synced {len(meetings)} meetings: {counts}")
 

@@ -12,7 +12,7 @@ README.md is for humans: what this is, setup, a few gotchas. This file is for ag
 
 ## granola_sync.py
 
-Talks to Granola's official MCP server (`https://mcp.granola.ai/mcp`) directly, with no LLM involved, so notes are written verbatim. Each run fetches every meeting from the last 30 days and writes one file per meeting to `meetings/`. Meetings that age out of the window stay on disk untouched. Dependencies are declared inline (`mcp>=2.2,<3`), so `uv run --script` installs them on first run.
+Talks to Granola's official MCP server (`https://mcp.granola.ai/mcp`) directly, with no LLM involved, so notes are written verbatim. Each run lists meetings from the last 30 days that are new or changed since the last successful sync (`list_meetings` with `updated_after`), fetches only those, and writes one file per meeting to `meetings/`. The last sync time lives in `meetings/.last_sync`; it is written only after all files are written, and a missing file means a full sync of the 30-day window. Delete it to force a full resync. Meetings that age out of the window stay on disk untouched. Dependencies are declared inline (`mcp>=2.2,<3`), so `uv run --script` installs them on first run.
 
 ### Auth
 
@@ -86,12 +86,13 @@ The MCP client runs requests inside anyio task groups, so errors arrive wrapped,
 | `ReadTimeout` or `ReadError` | Granola's server stopped responding mid-session on every try. Happened 4 times in about 20 daily runs (2026-10-04 to 2026-10-24, before the retry was added), and the next run worked each time. Rerun `./granola_sync.py` to catch up sooner |
 | `listed N meetings but fetched M` | Granola returned incomplete results. Rerun; if it persists, the MCP output format may have changed |
 | `ParseError: junk after document element` | The tool output format changed around `<meetings_data>`. Check what follows the closing tag (this is how `<pagination />` was found) |
+| `get_meetings failed: Rate limit reached` | Granola's per-tool limit. Hit on 2026-10-28 08:00, when every run fetched all 73 meetings (8 `get_meetings` calls per try). Runs now fetch only changed meetings; if it recurs, wait the stated time and rerun |
 | Import errors after an `mcp` upgrade | The SDK API changed. The script pins `mcp>=2.2,<3`; check the pin |
 
 ### Limitations
 
 - **Free plan**: only the last 30 days are reachable, and transcripts (`get_meeting_transcript`) are not available, so `Transcript` sections stay empty for new meetings. Transcripts saved before a downgrade are kept. Anything older than 30 days that was never synced can't be recovered this way. Granola's CSV export (Settings → Profile → Generate CSV) covers full history as a one-off backup.
-- **Rate limit**: Granola's MCP averages around 100 requests per minute. A sync uses 1 + ⌈meetings / 10⌉ + meetings tool calls, made one at a time, so this is not a concern.
+- **Rate limit**: limits are per user and per tool, shared with Claude sessions using the Granola MCP. Once spent, `get_meetings` allows about one call per 360 seconds. A sync uses 1 + ⌈changed / 10⌉ + changed tool calls, made one at a time.
 - **Undocumented format**: the XML-like tool output isn't a documented contract. If Granola changes it, parsing may break or return no meetings. Check the `synced N meetings` count in the log.
 - **Refresh token lifetime** is not documented by Granola. Expect to rerun `login` occasionally.
 
