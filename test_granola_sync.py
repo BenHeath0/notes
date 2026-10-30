@@ -33,7 +33,9 @@ class FakeGranola:
             for id, m in self.meetings.items()
             if id in ids
         )
-        return f'<meetings_data count="{len(ids)}">{rows}</meetings_data>\n<pagination has_more="false" />'
+        # the real server self-closes meetings_data when there are no meetings
+        data = f'<meetings_data count="{len(ids)}">{rows}</meetings_data>' if ids else '<meetings_data count="0" />'
+        return f'{data}\n<pagination has_more="false" />'
 
     async def call_tool(self, tool, args):
         self.calls[tool] = self.calls.get(tool, 0) + 1

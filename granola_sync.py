@@ -100,8 +100,11 @@ async def call(session, tool, args):
     if start == -1:
         return []
     # list_meetings appends a <pagination /> element after the closing tag
-    end = text.find("</meetings_data>") + len("</meetings_data>")
-    return ET.fromstring(text[start:end]).findall("meeting")
+    end = text.find("</meetings_data>")
+    # no closing tag means an empty self-closing <meetings_data ... />
+    if end == -1:
+        return []
+    return ET.fromstring(text[start:end + len("</meetings_data>")]).findall("meeting")
 
 
 async def transcript(session, meeting_id):
