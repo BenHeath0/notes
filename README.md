@@ -24,7 +24,7 @@ Two launchd agents run the scripts (plists in AGENTS.md):
 
 | Agent                        | Runs                                | Log                                |
 | ---------------------------- | ----------------------------------- | ---------------------------------- |
-| `com.benheath.granola-sync`  | daily at 18:00, then re-indexes qmd | `~/Library/Logs/granola-sync.log`  |
+| `com.benheath.granola-sync`  | daily at 06:00, then re-indexes qmd | `~/Library/Logs/granola-sync.log`  |
 | `com.benheath.daily-actions` | weekdays at 08:00                   | `~/Library/Logs/daily-actions.log` |
 
 For Ask Notes, index the notes with qmd:
@@ -39,5 +39,5 @@ Then in Raycast settings, open **Extensions**, click **+**, choose **Add Script 
 
 ## Good to know
 
-- Don't edit files in `meetings/` until they're 30 days old; the 18:00 sync overwrites them.
-- Notes added during the day aren't searchable by Ask Notes until the 18:00 re-index. Run `qmd update && qmd embed` to index them now.
+- Don't edit files in `meetings/` until they're 30 days old; the 06:00 sync overwrites them.
+- Notes added during the day aren't searchable by Ask Notes until the 06:00 re-index. Run `qmd update && qmd embed` to index them now.

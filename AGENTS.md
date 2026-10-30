@@ -100,7 +100,7 @@ The MCP client runs requests inside anyio task groups, so errors arrive wrapped,
 
 Builds a digest of action items from the previous workday's meetings (Friday's on Mondays):
 
-1. Runs `granola_sync.py` to pick up meetings that ended after the 18:00 sync.
+1. Runs `granola_sync.py` to pick up meetings that ended after the 06:00 sync.
 2. Pipes every note in `meetings/<day>/`, minus its `Transcript` section, into `claude -p` (Sonnet, `--tools ""`, no MCP servers, `--setting-sources project`) and asks for action items, including ones outside `Next Steps` sections.
 3. Writes `actions/<day>.md` as a checklist: Ben's items first, then everyone else's with the owner in bold (`Unassigned` when nobody owns it). Each item links back to its Granola note.
 4. Shows a dialog with the item count and an **Open** button that opens the digest.
@@ -151,7 +151,7 @@ Both agents live in `~/Library/LaunchAgents/`. If the Mac is asleep at the sched
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
-        <integer>18</integer>
+        <integer>6</integer>
         <key>Minute</key>
         <integer>0</integer>
     </dict>
