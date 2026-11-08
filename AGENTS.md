@@ -30,7 +30,7 @@ Opens a Streamable HTTP MCP session and calls three tools:
 
 - `list_meetings` with `time_range: last_30_days`, filtered to meetings Ben captured or is listed as a participant on.
 - `get_meetings` for those IDs, in batches of 10 (the tool's maximum).
-- `get_meeting_transcript` once per meeting. It returns a short warning preamble followed by a JSON object; only its `transcript` field is kept. A meeting whose transcript call errors (no recording, or the workspace denies transcript access) gets an empty `Transcript` section instead of failing the sync.
+- `get_meeting_transcript` once per meeting, only when `FETCH_TRANSCRIPTS` is `True`. It is `False` since 2026-11-06 because the account lost paid-plan transcript access on about 2026-10-26; with it off, new meetings get an empty `Transcript` section and saved transcripts are kept. It returns a short warning preamble followed by a JSON object; only its `transcript` field is kept. A meeting whose transcript call errors (no recording, or the workspace denies transcript access) gets an empty `Transcript` section instead of failing the sync.
 
 The first two return XML-like text (`<meetings_data><meeting ...>`), parsed with `xml.etree`. `list_meetings` appends a `<pagination />` element after `</meetings_data>`, so only the `<meetings_data>` element is parsed. The sync fails if `get_meetings` returns a different number of meetings than `list_meetings` listed.
 

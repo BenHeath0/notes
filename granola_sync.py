@@ -22,6 +22,8 @@ auth_http = httpx2.Client(base_url="https://mcp-auth.granola.ai/oauth2", timeout
 DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
 AUTH_FILE = Path.home() / ".config" / "granola-sync" / "auth.json"
 OUT_DIR = Path(__file__).resolve().parent / "meetings"
+# transcripts need a paid granola plan; set to True again after upgrading
+FETCH_TRANSCRIPTS = False
 
 
 def save_auth(client_id, refresh_token):
@@ -136,7 +138,10 @@ async def fetch_meetings(token, updated_after):
                 meetings += await call(session, "get_meetings", {"meeting_ids": ids[i:i + 10]})
             if len(meetings) != len(ids):
                 raise RuntimeError(f"listed {len(ids)} meetings but fetched {len(meetings)}")
-            transcripts = {id: await transcript(session, id) for id in ids}
+            if FETCH_TRANSCRIPTS:
+                transcripts = {id: await transcript(session, id) for id in ids}
+            else:
+                transcripts = dict.fromkeys(ids, "")
             return meetings, transcripts
 
 

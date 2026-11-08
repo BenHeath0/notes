@@ -113,3 +113,25 @@ def test_resync_fetches_only_changed_meetings(granola):
     assert granola.calls["get_meetings"] == 1
     saved = next(p for p in granola_sync.OUT_DIR.rglob("*.md") if "granola_id: id-07" in p.read_text())
     assert "edited notes" in saved.read_text()
+
+
+def test_sync_skips_transcripts_when_disabled(granola, monkeypatch):
+    monkeypatch.setattr(granola_sync, "FETCH_TRANSCRIPTS", False)
+
+    granola_sync.sync()
+
+    assert granola.calls.get("get_meeting_transcript", 0) == 0
+    assert len(list(granola_sync.OUT_DIR.rglob("*.md"))) == 25
+
+
+def test_sync_keeps_saved_transcript_when_disabled(granola, monkeypatch):
+    monkeypatch.setattr(granola_sync, "FETCH_TRANSCRIPTS", True)
+    granola_sync.sync()
+    monkeypatch.setattr(granola_sync, "FETCH_TRANSCRIPTS", False)
+    granola.touch("id-07", "edited notes")
+
+    granola_sync.sync()
+
+    saved = next(p for p in granola_sync.OUT_DIR.rglob("*.md") if "granola_id: id-07" in p.read_text())
+    assert "edited notes" in saved.read_text()
+    assert "transcript of id-07" in saved.read_text()
