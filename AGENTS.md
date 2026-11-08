@@ -5,7 +5,7 @@ README.md is for humans: what this is, setup, a few gotchas. This file is for ag
 ## Layout
 
 - Tracked: `granola_sync.py`, `daily_actions.sh`, `raycast/ask-notes.sh`, `README.md`, `AGENTS.md`, `.gitignore`.
-- Gitignored: `meetings/`, `actions/`, `sessions/`, `daily/`, `.obsidian` (the folder doubles as an Obsidian vault).
+- Gitignored: `meetings/`, `actions/`, `sessions/`, `plans/`, `daily/`, `.obsidian` (the folder doubles as an Obsidian vault).
 - **The remote (`github.com/BenHeath0/notes`) is public.** The gitignored folders hold private work notes. Never commit them or remove them from `.gitignore`.
 - The path `~/Developer/notes` is hard-coded in both launchd plists, `daily_actions.sh`, `raycast/ask-notes.sh`, `~/.config/qmd/index.yml`, and Ben's `save` and `load-note` Claude skills. Moving the folder means updating all of them.
 - Files outside the repo: `~/.config/granola-sync/auth.json` (Granola refresh token), `~/Library/LaunchAgents/com.benheath.{granola-sync,daily-actions}.plist`, `~/.config/qmd/index.yml`.
